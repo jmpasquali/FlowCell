@@ -10,15 +10,20 @@ import threading
 import tkMessageBox
 import RPi.GPIO as GPIO
 
+def pararBombas(): 
+	
+	for i in pinList: 
+		GPIO.output(i, GPIO.HIGH)
+
 def qualMotor(processo): 
 
 	if(processo == '1a limpeza de EtOH' or '2a limpeza de EtOH' or 'Limpeza de EtOH'):
 		motor = 2
-	else if(processo == 'Dosagem de Tiol'):
+	if(processo == 'Dosagem de Tiol'):
 		motor = 3
-	else if(processo == 'Dosagem de Suporte'):
+	if(processo == 'Dosagem de Suporte'):
 		motor = 6
-	else if(processo == 'Secagem'):
+	if(processo == 'Secagem'):
 		motor = 5
 
 	return motor
@@ -61,9 +66,9 @@ class FlowCell(tk.Tk):
        		menuProcessos = tk.Menu(menu, tearoff=0)
        		menu.add_cascade(menu=menuProcessos, label="Processo")
 
-		menuProcessos.add_command(label="Dosagem de Tiol", command= lambda: self.show_frame(str(listaTiol)))
-		menuProcessos.add_command(label="Dosagem de Suporte",command= lambda: self.show_frame(str(listaSuporte)))
-		menuProcessos.add_command(label="Limpar Sistema",command= lambda: self.show_frame(str(listaLimpeza)))
+		menuProcessos.add_command(label="Dosagem de Tiol", command= lambda: self.show_frame(1))
+		menuProcessos.add_command(label="Dosagem de Suporte",command= lambda: self.show_frame(2))
+		menuProcessos.add_command(label="Limpar Sistema",command= lambda: self.show_frame(3))
 
 
        		menuAjuda = tk.Menu(menu, tearoff=0)
@@ -74,11 +79,13 @@ class FlowCell(tk.Tk):
 
 		self.frames = {}
 
+		i = 1
 		for lista in (listaTiol, listaSuporte, listaLimpeza):
 
 			frame = NovaPagina(container, self, lista)
-			self.frames[str(lista)] = frame
+			self.frames[i] = frame
 			frame.grid(row=0, column=0, sticky="nsew")
+			i+= 1
 
 		frame = StartPage(container, self)
 		self.frames[StartPage] = frame
@@ -158,7 +165,15 @@ class NovaPagina(tk.Frame):
 			btn2.config(state = 'disabled')
 			
 		def iniciar(): 
-		
+			
+			GPIO.setmode(GPIO.BCM)
+
+			pinList = [2, 3, 5, 6]
+
+			for i in pinList: 
+			    GPIO.setup(i, GPIO.OUT) 
+			    GPIO.output(i, GPIO.HIGH)
+
 			def DelayComProgressBar(tempo, texto): 
 
 				## Cria progress bar e passa valores de sleep time
@@ -248,14 +263,6 @@ class NovaPagina(tk.Frame):
 
 
 if __name__ == "__main__":
-
-	GPIO.setmode(GPIO.BCM)
-
-	pinList = [2, 3, 5, 6]
-
-	for i in pinList: 
-	    GPIO.setup(i, GPIO.OUT) 
-	    GPIO.output(i, GPIO.HIGH)
 
 	app = FlowCell()
 	app.geometry("350x215")
